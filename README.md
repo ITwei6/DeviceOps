@@ -44,6 +44,23 @@ export DEVICEOPS_DEVICE_RPC_PORT=9201
 
 当前 `device_service` 实现了设备创建、更新、查询、列表和接入校验 RPC。仓储层先使用进程内内存实现，接口边界已独立，后续可替换为 MySQL/ODB 持久化。
 
+遥测状态服务：
+
+```bash
+export DEVICEOPS_TELEMETRY_RPC_PORT=9301
+export DEVICEOPS_REDIS_ENABLED=1
+export DEVICEOPS_REDIS_HOST=redis-service
+export DEVICEOPS_REDIS_PASSWORD=123456
+./build/services/telemetry_service/telemetry_service
+```
+
+`telemetry_service` 实现状态上传、实时状态查询、实时状态列表和历史查询。开启 Redis 后会写入：
+
+```text
+deviceops:device:status:{device_id}
+deviceops:device:online:{device_id}
+```
+
 机器人设备模拟器：
 
 ```bash

@@ -67,4 +67,5 @@ target_link_libraries(deviceops_proto
 
 add_subdirectory(services/device_gateway)
 add_subdirectory(services/device_service)
+add_subdirectory(services/telemetry_service)
 add_subdirectory(simulator)
