@@ -14,3 +14,4 @@
 - 新增 `deviceops_proto` 构建目标，统一生成并编译根目录 `proto/*.proto` 的 C++ protobuf/brpc 契约代码。
 - 新增 `robot_device_simulator`，支持通过 MQTT 上报注册、遥测、心跳、报警和日志消息，并模拟高温、错误码和离线异常。
 - 完善 `device_gateway`，支持 MQTT 消息标准化、转发统计、设备心跳视图和 `DeviceGatewayService` brpc 状态查询接口。
+- 新增 `device_service`，支持设备创建、更新、查询、列表和接入校验 RPC，当前仓储层为内存 MVP 实现。
