@@ -9,5 +9,6 @@ target_include_directories(device_service
 
 target_link_libraries(device_service
     PRIVATE
+        deviceops_db
         tew_scaffold
         deviceops_proto)

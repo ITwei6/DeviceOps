@@ -12,6 +12,7 @@ cmake --build build
 ```
 
 构建时会统一生成并编译根目录 `proto/*.proto` 的 C++ 契约代码，生成目录位于 `build/generated/proto/`。
+MySQL 持久化使用 ODB，源码只维护 `common/include/deviceops/db/*_entity.h` 实体定义，`*-odb.hxx`、`*-odb.cxx` 和 schema 会在构建时生成到 `build/generated/odb/`。
 
 运行前可通过环境变量配置 MQTT Broker：
 
@@ -39,10 +40,12 @@ curl -X POST http://127.0.0.1:9101/deviceops.gateway.DeviceGatewayService/GetFor
 
 ```bash
 export DEVICEOPS_DEVICE_RPC_PORT=9201
+export DEVICEOPS_MYSQL_HOST=mysql-service
+export DEVICEOPS_MYSQL_PASSWORD=123456
 ./build/services/device_service/device_service
 ```
 
-当前 `device_service` 实现了设备创建、更新、查询、列表和接入校验 RPC。仓储层先使用进程内内存实现，接口边界已独立，后续可替换为 MySQL/ODB 持久化。
+当前 `device_service` 实现了设备创建、更新、查询、列表和接入校验 RPC，仓储层通过 ODB 写入 MySQL。
 
 遥测状态服务：
 
@@ -60,6 +63,17 @@ export DEVICEOPS_REDIS_PASSWORD=123456
 deviceops:device:status:{device_id}
 deviceops:device:online:{device_id}
 ```
+
+异常事件服务：
+
+```bash
+export DEVICEOPS_EVENT_RPC_PORT=9401
+export DEVICEOPS_MYSQL_HOST=mysql-service
+export DEVICEOPS_MYSQL_PASSWORD=123456
+./build/services/event_service/event_service
+```
+
+`event_service` 实现告警事件创建、查询、列表和状态流转，事件数据通过 ODB 写入 MySQL。
 
 机器人设备模拟器：
 

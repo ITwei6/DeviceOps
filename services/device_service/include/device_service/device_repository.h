@@ -1,13 +1,15 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
-#include <mutex>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include <odb/database.hxx>
+
 #include "device.pb.h"
+#include "deviceops/db/device_entity.h"
 
 namespace deviceops::device_service {
 
@@ -26,6 +28,8 @@ struct ListDeviceFilter {
 
 class DeviceRepository {
 public:
+    explicit DeviceRepository(std::shared_ptr<odb::database> database);
+
     bool create(const deviceops::device::CreateDeviceRequest& request, DeviceRecord* created, std::string* error);
     bool update(const deviceops::device::UpdateDeviceRequest& request, DeviceRecord* updated, std::string* error);
     std::optional<DeviceRecord> get(const std::string& device_id) const;
@@ -33,14 +37,13 @@ public:
     bool verifyAccess(const std::string& device_id, const std::string& access_token, const std::string& protocol, DeviceRecord* record, std::string* error) const;
 
 private:
+    static deviceops::device::Device toProto(const deviceops::db::DeviceEntity& entity);
+    static deviceops::common::DeviceStatus statusFromString(const std::string& status);
+    static std::string statusToString(deviceops::common::DeviceStatus status);
     static std::string hashAccessToken(const std::string& access_token);
 
 private:
-    mutable std::mutex _mutex;
-    uint64_t _next_id = 1;
-    std::map<std::string, DeviceRecord> _devices;
+    std::shared_ptr<odb::database> _database;
 };
-
-int64_t currentUnixMillis();
 
 } // namespace deviceops::device_service

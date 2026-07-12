@@ -1,0 +1,10 @@
+-- DeviceOps MySQL schema is generated from ODB entity classes:
+--   common/include/deviceops/db/device_entity.h
+--   common/include/deviceops/db/event_entity.h
+--
+-- Build output includes generated ODB mapping files under:
+--   build/generated/odb/*-odb.hxx
+--   build/generated/odb/*-odb.ixx
+--   build/generated/odb/*-odb.cxx
+--
+-- Schema DDL is embedded into the generated ODB C++ and initialized on startup.

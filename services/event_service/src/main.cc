@@ -2,13 +2,12 @@
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
-#include <memory>
 #include <string>
 #include <thread>
 
 #include "deviceops/db/odb_database.h"
-#include "device_service/device_repository.h"
-#include "device_service/device_service_impl.h"
+#include "event_service/event_repository.h"
+#include "event_service/event_service_impl.h"
 #include "log.h"
 #include "rpc.h"
 
@@ -39,15 +38,15 @@ int main() {
     std::signal(SIGINT, handleSignal);
     std::signal(SIGTERM, handleSignal);
 
-    const int port = getenvIntOrDefault("DEVICEOPS_DEVICE_RPC_PORT", 9201);
+    const int port = getenvIntOrDefault("DEVICEOPS_EVENT_RPC_PORT", 9401);
     const auto db_config = deviceops::db::loadOdbConfigFromEnv();
     deviceops::db::ensureOdbSchema(db_config);
-    deviceops::device_service::DeviceRepository repository(deviceops::db::createOdbDatabase(db_config));
+    deviceops::event_service::EventRepository repository(deviceops::db::createOdbDatabase(db_config));
     auto server = tewrpc::RpcServerFactory::create(
         port,
-        new deviceops::device_service::DeviceServiceImpl(&repository));
+        new deviceops::event_service::EventServiceImpl(&repository));
 
-    INF("device-service started: rpc_port={}", port);
+    INF("event-service started: rpc_port={}", port);
     while (!g_stop.load()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
