@@ -21,3 +21,14 @@ export DEVICEOPS_MQTT_PORT=1883
 export DEVICEOPS_MQTT_USERNAME=
 export DEVICEOPS_MQTT_PASSWORD=
 ```
+
+机器人设备模拟器：
+
+```bash
+DEVICEOPS_SIM_DEVICE_ID=robot-001 \
+DEVICEOPS_SIM_LOOP_COUNT=10 \
+DEVICEOPS_SIM_INTERVAL_MS=1000 \
+./build/simulator/robot_device_simulator
+```
+
+模拟器会发布注册、遥测、心跳、报警和日志消息，并按周期模拟高温、错误码和离线状态。

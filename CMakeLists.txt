@@ -66,3 +66,4 @@ target_link_libraries(deviceops_proto
         ${Protobuf_LIBRARIES})
 
 add_subdirectory(services/device_gateway)
+add_subdirectory(simulator)
