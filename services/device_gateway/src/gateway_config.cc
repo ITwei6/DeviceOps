@@ -31,6 +31,7 @@ int getenvIntOrDefault(const char* name, int fallback) {
 GatewayConfig loadGatewayConfigFromEnv() {
     GatewayConfig config;
     config.gateway_id = getenvOrDefault("DEVICEOPS_GATEWAY_ID", config.gateway_id);
+    config.rpc_port = getenvIntOrDefault("DEVICEOPS_GATEWAY_RPC_PORT", config.rpc_port);
     config.mqtt.host = getenvOrDefault("DEVICEOPS_MQTT_HOST", "127.0.0.1");
     config.mqtt.port = getenvIntOrDefault("DEVICEOPS_MQTT_PORT", 1883);
     config.mqtt.client_id = getenvOrDefault("DEVICEOPS_MQTT_CLIENT_ID", config.gateway_id);

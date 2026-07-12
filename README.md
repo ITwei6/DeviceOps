@@ -20,6 +20,19 @@ export DEVICEOPS_MQTT_HOST=127.0.0.1
 export DEVICEOPS_MQTT_PORT=1883
 export DEVICEOPS_MQTT_USERNAME=
 export DEVICEOPS_MQTT_PASSWORD=
+export DEVICEOPS_GATEWAY_RPC_PORT=9101
+```
+
+`device_gateway` 会订阅 `device/+/register`、`device/+/telemetry`、`device/+/alarm`、`device/+/log` 和 `device/+/heartbeat`，并暴露 brpc 状态接口：
+
+```bash
+curl -X POST http://127.0.0.1:9101/deviceops.gateway.DeviceGatewayService/GetGatewayStatus \
+  -H 'Content-Type: application/json' \
+  -d '{"gateway_id":"device-gateway-001"}'
+
+curl -X POST http://127.0.0.1:9101/deviceops.gateway.DeviceGatewayService/GetForwardingStats \
+  -H 'Content-Type: application/json' \
+  -d '{"gateway_id":"device-gateway-001"}'
 ```
 
 机器人设备模拟器：

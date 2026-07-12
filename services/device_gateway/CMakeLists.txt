@@ -1,5 +1,6 @@
 add_executable(device_gateway
     src/gateway_config.cc
+    src/gateway_rpc_service.cc
     src/gateway_server.cc
     src/main.cc)
 
