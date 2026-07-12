@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package deviceops.common;
+
+option cc_generic_services = true;
+
+message CommonResponse {
+  int32 code = 1;
+  string message = 2;
+  string trace_id = 3;
+}
+
+message PageRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message PageResponse {
+  int32 page = 1;
+  int32 page_size = 2;
+  int64 total = 3;
+}
+
+message TimeRange {
+  int64 start_time = 1;
+  int64 end_time = 2;
+}
+
+enum DeviceStatus {
+  DEVICE_STATUS_UNSPECIFIED = 0;
+  DEVICE_STATUS_ENABLED = 1;
+  DEVICE_STATUS_DISABLED = 2;
+  DEVICE_STATUS_MAINTENANCE = 3;
+}
+
+enum EventSeverity {
+  EVENT_SEVERITY_UNSPECIFIED = 0;
+  EVENT_SEVERITY_INFO = 1;
+  EVENT_SEVERITY_WARNING = 2;
+  EVENT_SEVERITY_CRITICAL = 3;
+}
+
+enum EventStatus {
+  EVENT_STATUS_UNSPECIFIED = 0;
+  EVENT_STATUS_OPEN = 1;
+  EVENT_STATUS_PROCESSING = 2;
+  EVENT_STATUS_RESOLVED = 3;
+  EVENT_STATUS_CLOSED = 4;
+}
+
+enum FaultStatus {
+  FAULT_STATUS_UNSPECIFIED = 0;
+  FAULT_STATUS_NEW = 1;
+  FAULT_STATUS_PROCESSING = 2;
+  FAULT_STATUS_RESOLVED = 3;
+  FAULT_STATUS_CLOSED = 4;
+}
+
+enum ReportStatus {
+  REPORT_STATUS_UNSPECIFIED = 0;
+  REPORT_STATUS_DRAFT = 1;
+  REPORT_STATUS_CONFIRMED = 2;
+  REPORT_STATUS_REJECTED = 3;
+}

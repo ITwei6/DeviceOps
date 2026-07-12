@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package deviceops.log;
+
+option cc_generic_services = true;
+
+import "common.proto";
+
+message LogEntry {
+  string log_id = 1;
+  string trace_id = 2;
+  string device_id = 3;
+  string service_name = 4;
+  string source_type = 5;
+  string level = 6;
+  string message = 7;
+  string error_code = 8;
+  string event_id = 9;
+  repeated string tags = 10;
+  string context_json = 11;
+  int64 timestamp = 12;
+}
+
+message WriteLogRequest {
+  LogEntry log = 1;
+}
+
+message WriteLogResponse {
+  deviceops.common.CommonResponse response = 1;
+}
+
+message QueryLogsRequest {
+  deviceops.common.PageRequest page = 1;
+  string device_id = 2;
+  string service_name = 3;
+  string level = 4;
+  string keyword = 5;
+  string event_id = 6;
+  deviceops.common.TimeRange time_range = 7;
+}
+
+message QueryLogsResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated LogEntry logs = 3;
+}
+
+message GetLogContextRequest {
+  string device_id = 1;
+  int64 center_time = 2;
+  int64 before_ms = 3;
+  int64 after_ms = 4;
+  int32 limit = 5;
+}
+
+message GetLogContextResponse {
+  deviceops.common.CommonResponse response = 1;
+  repeated LogEntry logs = 2;
+}
+
+service LogService {
+  rpc WriteLog(WriteLogRequest) returns (WriteLogResponse);
+  rpc QueryLogs(QueryLogsRequest) returns (QueryLogsResponse);
+  rpc GetLogContext(GetLogContextRequest) returns (GetLogContextResponse);
+}

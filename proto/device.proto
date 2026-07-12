@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package deviceops.device;
+
+option cc_generic_services = true;
+
+import "common.proto";
+
+message Device {
+  uint64 id = 1;
+  string device_id = 2;
+  string device_name = 3;
+  string device_type = 4;
+  string model = 5;
+  string manufacturer = 6;
+  string location = 7;
+  deviceops.common.DeviceStatus status = 8;
+  string protocol = 9;
+  string description = 10;
+  int64 created_at = 11;
+  int64 updated_at = 12;
+}
+
+message CreateDeviceRequest {
+  string device_id = 1;
+  string device_name = 2;
+  string device_type = 3;
+  string model = 4;
+  string manufacturer = 5;
+  string location = 6;
+  string access_token = 7;
+  string protocol = 8;
+  string description = 9;
+}
+
+message CreateDeviceResponse {
+  deviceops.common.CommonResponse response = 1;
+  Device device = 2;
+}
+
+message UpdateDeviceRequest {
+  string device_id = 1;
+  string device_name = 2;
+  string device_type = 3;
+  string model = 4;
+  string manufacturer = 5;
+  string location = 6;
+  deviceops.common.DeviceStatus status = 7;
+  string description = 8;
+}
+
+message UpdateDeviceResponse {
+  deviceops.common.CommonResponse response = 1;
+  Device device = 2;
+}
+
+message GetDeviceRequest {
+  string device_id = 1;
+}
+
+message GetDeviceResponse {
+  deviceops.common.CommonResponse response = 1;
+  Device device = 2;
+}
+
+message ListDevicesRequest {
+  deviceops.common.PageRequest page = 1;
+  string device_type = 2;
+  deviceops.common.DeviceStatus status = 3;
+  string keyword = 4;
+}
+
+message ListDevicesResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated Device devices = 3;
+}
+
+message VerifyDeviceAccessRequest {
+  string device_id = 1;
+  string access_token = 2;
+  string protocol = 3;
+}
+
+message VerifyDeviceAccessResponse {
+  deviceops.common.CommonResponse response = 1;
+  bool allowed = 2;
+  Device device = 3;
+}
+
+service DeviceService {
+  rpc CreateDevice(CreateDeviceRequest) returns (CreateDeviceResponse);
+  rpc UpdateDevice(UpdateDeviceRequest) returns (UpdateDeviceResponse);
+  rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
+  rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+  rpc VerifyDeviceAccess(VerifyDeviceAccessRequest) returns (VerifyDeviceAccessResponse);
+}

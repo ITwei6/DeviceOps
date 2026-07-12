@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package deviceops.event;
+
+option cc_generic_services = true;
+
+import "common.proto";
+
+message Event {
+  uint64 id = 1;
+  string event_id = 2;
+  string device_id = 3;
+  string event_type = 4;
+  deviceops.common.EventSeverity severity = 5;
+  deviceops.common.EventStatus status = 6;
+  string error_code = 7;
+  string title = 8;
+  string description = 9;
+  string metric_snapshot_json = 10;
+  string rule_name = 11;
+  int64 occurred_at = 12;
+  int64 resolved_at = 13;
+  int64 created_at = 14;
+  int64 updated_at = 15;
+}
+
+message CreateEventRequest {
+  string trace_id = 1;
+  string device_id = 2;
+  string event_type = 3;
+  deviceops.common.EventSeverity severity = 4;
+  string error_code = 5;
+  string title = 6;
+  string description = 7;
+  string metric_snapshot_json = 8;
+  string rule_name = 9;
+  int64 occurred_at = 10;
+}
+
+message CreateEventResponse {
+  deviceops.common.CommonResponse response = 1;
+  Event event = 2;
+}
+
+message GetEventRequest {
+  string event_id = 1;
+}
+
+message GetEventResponse {
+  deviceops.common.CommonResponse response = 1;
+  Event event = 2;
+}
+
+message ListEventsRequest {
+  deviceops.common.PageRequest page = 1;
+  string device_id = 2;
+  string event_type = 3;
+  deviceops.common.EventSeverity severity = 4;
+  deviceops.common.EventStatus status = 5;
+  deviceops.common.TimeRange time_range = 6;
+}
+
+message ListEventsResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated Event events = 3;
+}
+
+message UpdateEventStatusRequest {
+  string event_id = 1;
+  deviceops.common.EventStatus status = 2;
+  string comment = 3;
+  int64 operator_user_id = 4;
+}
+
+message UpdateEventStatusResponse {
+  deviceops.common.CommonResponse response = 1;
+  Event event = 2;
+}
+
+service EventService {
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse);
+  rpc GetEvent(GetEventRequest) returns (GetEventResponse);
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse);
+  rpc UpdateEventStatus(UpdateEventStatusRequest) returns (UpdateEventStatusResponse);
+}

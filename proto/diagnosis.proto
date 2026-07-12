@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package deviceops.diagnosis;
+
+option cc_generic_services = true;
+
+import "common.proto";
+
+message FaultRecord {
+  uint64 id = 1;
+  string fault_id = 2;
+  string device_id = 3;
+  string event_id = 4;
+  uint64 owner_user_id = 5;
+  string fault_type = 6;
+  deviceops.common.EventSeverity severity = 7;
+  deviceops.common.FaultStatus status = 8;
+  string symptom = 9;
+  string root_cause = 10;
+  string solution = 11;
+  int64 started_at = 12;
+  int64 resolved_at = 13;
+  int64 created_at = 14;
+  int64 updated_at = 15;
+}
+
+message DiagnosisReport {
+  uint64 id = 1;
+  string report_id = 2;
+  string device_id = 3;
+  string event_id = 4;
+  string fault_id = 5;
+  uint64 created_by = 6;
+  string report_type = 7;
+  deviceops.common.ReportStatus status = 8;
+  string summary = 9;
+  string possible_causes_json = 10;
+  string recommended_actions_json = 11;
+  string evidence_json = 12;
+  string ai_model = 13;
+  double confidence = 14;
+  int64 created_at = 15;
+  int64 updated_at = 16;
+}
+
+message CreateFaultRecordRequest {
+  string device_id = 1;
+  string event_id = 2;
+  uint64 owner_user_id = 3;
+  string fault_type = 4;
+  deviceops.common.EventSeverity severity = 5;
+  string symptom = 6;
+  int64 started_at = 7;
+}
+
+message CreateFaultRecordResponse {
+  deviceops.common.CommonResponse response = 1;
+  FaultRecord fault = 2;
+}
+
+message GetFaultRecordRequest {
+  string fault_id = 1;
+}
+
+message GetFaultRecordResponse {
+  deviceops.common.CommonResponse response = 1;
+  FaultRecord fault = 2;
+}
+
+message ListFaultRecordsRequest {
+  deviceops.common.PageRequest page = 1;
+  string device_id = 2;
+  string event_id = 3;
+  deviceops.common.FaultStatus status = 4;
+  deviceops.common.TimeRange time_range = 5;
+}
+
+message ListFaultRecordsResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated FaultRecord faults = 3;
+}
+
+message StartDiagnosisRequest {
+  string event_id = 1;
+  string fault_id = 2;
+  string device_id = 3;
+  uint64 requested_by = 4;
+  string engineer_note = 5;
+}
+
+message StartDiagnosisResponse {
+  deviceops.common.CommonResponse response = 1;
+  string task_id = 2;
+}
+
+message GetDiagnosisReportRequest {
+  string report_id = 1;
+}
+
+message GetDiagnosisReportResponse {
+  deviceops.common.CommonResponse response = 1;
+  DiagnosisReport report = 2;
+}
+
+message ListDiagnosisReportsRequest {
+  deviceops.common.PageRequest page = 1;
+  string device_id = 2;
+  string event_id = 3;
+  string fault_id = 4;
+  deviceops.common.ReportStatus status = 5;
+}
+
+message ListDiagnosisReportsResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated DiagnosisReport reports = 3;
+}
+
+message ConfirmDiagnosisReportRequest {
+  string report_id = 1;
+  uint64 operator_user_id = 2;
+  bool confirmed = 3;
+  string comment = 4;
+}
+
+message ConfirmDiagnosisReportResponse {
+  deviceops.common.CommonResponse response = 1;
+  DiagnosisReport report = 2;
+}
+
+service DiagnosisService {
+  rpc CreateFaultRecord(CreateFaultRecordRequest) returns (CreateFaultRecordResponse);
+  rpc GetFaultRecord(GetFaultRecordRequest) returns (GetFaultRecordResponse);
+  rpc ListFaultRecords(ListFaultRecordsRequest) returns (ListFaultRecordsResponse);
+  rpc StartDiagnosis(StartDiagnosisRequest) returns (StartDiagnosisResponse);
+  rpc GetDiagnosisReport(GetDiagnosisReportRequest) returns (GetDiagnosisReportResponse);
+  rpc ListDiagnosisReports(ListDiagnosisReportsRequest) returns (ListDiagnosisReportsResponse);
+  rpc ConfirmDiagnosisReport(ConfirmDiagnosisReportRequest) returns (ConfirmDiagnosisReportResponse);
+}

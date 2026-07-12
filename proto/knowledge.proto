@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package deviceops.knowledge;
+
+option cc_generic_services = true;
+
+import "common.proto";
+
+message KnowledgeDocument {
+  string document_id = 1;
+  string title = 2;
+  string category = 3;
+  string device_type = 4;
+  string error_code = 5;
+  string content = 6;
+  string status = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message KnowledgeSnippet {
+  string document_id = 1;
+  string chunk_id = 2;
+  string title = 3;
+  string content = 4;
+  double score = 5;
+  map<string, string> metadata = 6;
+}
+
+message CreateKnowledgeDocumentRequest {
+  string title = 1;
+  string category = 2;
+  string device_type = 3;
+  string error_code = 4;
+  string content = 5;
+  uint64 created_by = 6;
+}
+
+message CreateKnowledgeDocumentResponse {
+  deviceops.common.CommonResponse response = 1;
+  KnowledgeDocument document = 2;
+}
+
+message GetKnowledgeDocumentRequest {
+  string document_id = 1;
+}
+
+message GetKnowledgeDocumentResponse {
+  deviceops.common.CommonResponse response = 1;
+  KnowledgeDocument document = 2;
+}
+
+message SearchKnowledgeRequest {
+  string query = 1;
+  string device_type = 2;
+  string error_code = 3;
+  int32 top_k = 4;
+}
+
+message SearchKnowledgeResponse {
+  deviceops.common.CommonResponse response = 1;
+  repeated KnowledgeSnippet snippets = 2;
+}
+
+message ListKnowledgeDocumentsRequest {
+  deviceops.common.PageRequest page = 1;
+  string category = 2;
+  string device_type = 3;
+  string keyword = 4;
+  string status = 5;
+}
+
+message ListKnowledgeDocumentsResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated KnowledgeDocument documents = 3;
+}
+
+message RequestKnowledgeIndexRequest {
+  string document_id = 1;
+  bool force_rebuild = 2;
+}
+
+message RequestKnowledgeIndexResponse {
+  deviceops.common.CommonResponse response = 1;
+  string task_id = 2;
+}
+
+service KnowledgeService {
+  rpc CreateKnowledgeDocument(CreateKnowledgeDocumentRequest) returns (CreateKnowledgeDocumentResponse);
+  rpc GetKnowledgeDocument(GetKnowledgeDocumentRequest) returns (GetKnowledgeDocumentResponse);
+  rpc ListKnowledgeDocuments(ListKnowledgeDocumentsRequest) returns (ListKnowledgeDocumentsResponse);
+  rpc SearchKnowledge(SearchKnowledgeRequest) returns (SearchKnowledgeResponse);
+  rpc RequestKnowledgeIndex(RequestKnowledgeIndexRequest) returns (RequestKnowledgeIndexResponse);
+}

@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package deviceops.telemetry;
+
+option cc_generic_services = true;
+
+import "common.proto";
+
+message DeviceTelemetry {
+  string device_id = 1;
+  bool online = 2;
+  double battery = 3;
+  double temperature = 4;
+  double speed = 5;
+  string run_mode = 6;
+  string error_code = 7;
+  int64 reported_at = 8;
+  map<string, double> metrics = 9;
+}
+
+message UploadTelemetryRequest {
+  string trace_id = 1;
+  DeviceTelemetry telemetry = 2;
+}
+
+message UploadTelemetryResponse {
+  deviceops.common.CommonResponse response = 1;
+}
+
+message GetRealtimeStatusRequest {
+  string device_id = 1;
+}
+
+message GetRealtimeStatusResponse {
+  deviceops.common.CommonResponse response = 1;
+  DeviceTelemetry telemetry = 2;
+}
+
+message ListRealtimeStatusRequest {
+  deviceops.common.PageRequest page = 1;
+  repeated string device_ids = 2;
+  string device_type = 3;
+  bool only_online = 4;
+}
+
+message ListRealtimeStatusResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated DeviceTelemetry items = 3;
+}
+
+message QueryTelemetryHistoryRequest {
+  string device_id = 1;
+  deviceops.common.TimeRange time_range = 2;
+  deviceops.common.PageRequest page = 3;
+}
+
+message QueryTelemetryHistoryResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated DeviceTelemetry items = 3;
+}
+
+service TelemetryService {
+  rpc UploadTelemetry(UploadTelemetryRequest) returns (UploadTelemetryResponse);
+  rpc GetRealtimeStatus(GetRealtimeStatusRequest) returns (GetRealtimeStatusResponse);
+  rpc ListRealtimeStatus(ListRealtimeStatusRequest) returns (ListRealtimeStatusResponse);
+  rpc QueryTelemetryHistory(QueryTelemetryHistoryRequest) returns (QueryTelemetryHistoryResponse);
+}
