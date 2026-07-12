@@ -5,6 +5,7 @@
 #include <mutex>
 #include <string>
 
+#include "device_gateway.pb.h"
 #include "device_gateway/gateway_config.h"
 #include "mqtt_client.h"
 
@@ -25,6 +26,7 @@ public:
     bool start();
     void stop();
     bool running() const;
+    GatewayStatus currentStatus() const;
 
 private:
     void handleMqttMessage(const tewmqtt::MqttMessage& message);

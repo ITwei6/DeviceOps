@@ -11,6 +11,8 @@ cmake -S . -B build
 cmake --build build
 ```
 
+构建时会统一生成并编译根目录 `proto/*.proto` 的 C++ 契约代码，生成目录位于 `build/generated/proto/`。
+
 运行前可通过环境变量配置 MQTT Broker：
 
 ```bash

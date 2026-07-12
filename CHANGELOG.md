@@ -11,3 +11,4 @@
 - 新增 DeviceOps 后端 CMake 工程和服务目录骨架。
 - 新增 `device_gateway` 最小服务，支持 MQTT Topic 订阅、JSON payload 校验和接入统计。
 - 在 `cpp-microservice-kit` 中新增 `tewmqtt::MqttClient`，封装 MQTT 连接、订阅、发布、断线重连和订阅恢复。
+- 新增 `deviceops_proto` 构建目标，统一生成并编译根目录 `proto/*.proto` 的 C++ protobuf/brpc 契约代码。

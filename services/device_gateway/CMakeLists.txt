@@ -9,4 +9,5 @@ target_include_directories(device_gateway
 
 target_link_libraries(device_gateway
     PRIVATE
-        tew_scaffold)
+        tew_scaffold
+        deviceops_proto)

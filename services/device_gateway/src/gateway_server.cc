@@ -81,6 +81,17 @@ bool GatewayServer::running() const {
     return _running.load();
 }
 
+GatewayStatus GatewayServer::currentStatus() const {
+    GatewayStatus status;
+    status.set_gateway_id(_config.gateway_id);
+    status.set_mqtt_broker(_config.mqtt.broker_uri());
+    status.set_mqtt_connected(_mqtt_client.connected());
+    for (const auto& topic : _config.subscribe_topics) {
+        status.add_subscribed_topics(topic);
+    }
+    return status;
+}
+
 void GatewayServer::handleMqttMessage(const tewmqtt::MqttMessage& message) {
     std::string message_type = "unknown";
     increment(message_type, incReceived);
