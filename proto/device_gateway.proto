@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package deviceops.gateway;
+
+option cc_generic_services = true;
+
+import "common.proto";
+
+message GatewayStatus {
+  string gateway_id = 1;
+  string mqtt_broker = 2;
+  bool mqtt_connected = 3;
+  repeated string subscribed_topics = 4;
+  int64 started_at = 5;
+  int64 updated_at = 6;
+}
+
+message ConnectedDevice {
+  string device_id = 1;
+  string client_id = 2;
+  string remote_addr = 3;
+  int64 connected_at = 4;
+  int64 last_heartbeat_at = 5;
+}
+
+message ForwardingStat {
+  string message_type = 1;
+  uint64 received_count = 2;
+  uint64 forwarded_count = 3;
+  uint64 dropped_count = 4;
+  uint64 failed_count = 5;
+  int64 updated_at = 6;
+}
+
+message GetGatewayStatusRequest {
+  string gateway_id = 1;
+}
+
+message GetGatewayStatusResponse {
+  deviceops.common.CommonResponse response = 1;
+  GatewayStatus status = 2;
+}
+
+message ListConnectedDevicesRequest {
+  deviceops.common.PageRequest page = 1;
+  string gateway_id = 2;
+  string keyword = 3;
+}
+
+message ListConnectedDevicesResponse {
+  deviceops.common.CommonResponse response = 1;
+  deviceops.common.PageResponse page = 2;
+  repeated ConnectedDevice devices = 3;
+}
+
+message GetForwardingStatsRequest {
+  string gateway_id = 1;
+  string message_type = 2;
+}
+
+message GetForwardingStatsResponse {
+  deviceops.common.CommonResponse response = 1;
+  repeated ForwardingStat stats = 2;
+}
+
+service DeviceGatewayService {
+  rpc GetGatewayStatus(GetGatewayStatusRequest) returns (GetGatewayStatusResponse);
+  rpc ListConnectedDevices(ListConnectedDevicesRequest) returns (ListConnectedDevicesResponse);
+  rpc GetForwardingStats(GetForwardingStatsRequest) returns (GetForwardingStatsResponse);
+}

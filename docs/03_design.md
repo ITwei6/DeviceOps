@@ -16,7 +16,7 @@
 - MySQL 业务表设计、ER 关系说明和建表 SQL。
 - Redis 实时状态、在线状态和任务状态 Key 设计。
 - Elasticsearch 日志索引结构。
-- MQTT 设备消息协议。
+- MQTT 设备消息协议和 device-gateway 转发规则。
 - RabbitMQ 交换机、队列、路由键和消息格式。
 - brpc + protobuf RPC 接口契约，proto 文件保存于 `proto/` 目录。
 
@@ -727,13 +727,91 @@ Payload：
 }
 ```
 
-## 7. Protobuf RPC 设计
+## 7. Device Gateway 转发设计
 
-### 7.1 文件清单
+### 7.1 设计定位
+
+`device-gateway` 是设备侧统一入口，负责 MQTT 接入、设备认证、协议解析、消息标准化和内部转发。它是转发型网关，不是业务处理服务。
+
+网关必须做：
+
+- 订阅设备 MQTT Topic。
+- 校验 topic 中的 `device_id` 和 payload 中的 `device_id` 是否一致。
+- 校验设备接入身份和协议版本。
+- 将设备 JSON payload 转换为内部标准消息。
+- 按消息类型同步调用内部服务或异步投递 RabbitMQ。
+- 给每条进入平台的设备消息生成或透传 `trace_id`。
+- 记录协议解析失败、认证失败和转发失败日志。
+
+网关禁止做：
+
+- 不维护设备主数据，设备资料由 `device-service` 负责。
+- 不保存设备最新状态，实时状态由 `telemetry-service` 和 Redis 负责。
+- 不执行复杂告警规则，告警判断由 `event-service` 负责。
+- 不生成诊断结论，故障诊断由 `diagnosis-service` 负责。
+- 不直接写业务数据库，除非后续设计明确增加网关自身运行统计表。
+
+### 7.2 转发规则
+
+| MQTT Topic | 消息类型 | 网关处理 | 同步转发 | 异步投递 |
+| --- | --- | --- | --- | --- |
+| `device/{device_id}/register` | 设备注册 | 认证、解析注册信息、标准化设备资料 | `device-service.CreateDevice` 或 `device-service.VerifyDeviceAccess` | 可选：`device.registered` |
+| `device/{device_id}/telemetry` | 状态上传 | 校验字段、标准化指标、补充 trace_id | `telemetry-service.UploadTelemetry` | `telemetry.status.updated` |
+| `device/{device_id}/alarm` | 设备报警 | 标准化告警类型、严重级别、错误码和指标快照 | `event-service.CreateEvent` 可选 | `event.alarm.created` |
+| `device/{device_id}/log` | 设备日志 | 标准化日志级别、上下文和时间戳 | `log-service.WriteLog` 可选 | `log.device.received` |
+| `device/{device_id}/heartbeat` | 设备心跳 | 刷新在线状态、生成心跳事件 | `telemetry-service.UploadTelemetry` 可选 | `telemetry.heartbeat.received` |
+
+### 7.3 同步与异步选择
+
+同步转发适用场景：
+
+- 设备注册和接入认证，需要立即返回是否允许接入。
+- 状态上传的 MVP 初期链路，为降低开发复杂度可先同步调用 `telemetry-service`。
+- 管理端查询网关运行状态，需要直接返回当前连接和转发统计。
+
+异步投递适用场景：
+
+- 高频状态消息，避免设备接入链路被后端处理阻塞。
+- 设备日志写入，允许后端批量消费和重试。
+- 告警候选事件，允许 event-service 独立扩展规则处理能力。
+- 诊断任务和知识库索引等耗时任务。
+
+MVP 建议：
+
+- 注册消息：同步调用 `device-service`。
+- 状态消息：同步写 `telemetry-service`，同时可发布状态更新事件。
+- 报警消息：优先异步投递 `event.alarm.created`，必要时保留同步创建事件接口。
+- 日志消息：优先异步投递 `log.device.received`。
+- 心跳消息：轻量同步或异步均可，优先保证在线状态刷新及时。
+
+### 7.4 转发失败处理
+
+| 失败类型 | 处理方式 |
+| --- | --- |
+| MQTT payload 非法 | 记录解析失败日志，不转发 |
+| 设备认证失败 | 记录认证失败日志，拒绝后续转发 |
+| 内部 RPC 调用失败 | 记录失败日志，按消息类型决定是否投递 RabbitMQ 重试队列 |
+| RabbitMQ 投递失败 | 记录失败日志，MVP 阶段返回失败并保留本地日志 |
+| 下游服务不可用 | 触发网关健康状态降级，避免吞掉错误 |
+
+### 7.5 网关运行状态接口
+
+网关本身可暴露轻量管理 RPC，用于开发和运维查看接入层状态：
+
+- `GetGatewayStatus`：查询网关启动时间、MQTT 连接状态、订阅 Topic、转发计数。
+- `ListConnectedDevices`：查询当前网关视角下的在线设备和最后心跳时间。
+- `GetForwardingStats`：查询按消息类型统计的转发成功、失败、丢弃数量。
+
+对应 proto 文件：`proto/device_gateway.proto`。
+
+## 8. Protobuf RPC 设计
+
+### 8.1 文件清单
 
 proto 文件保存于 `proto/`：
 
 - `proto/common.proto`：通用响应、分页、时间范围和枚举。
+- `proto/device_gateway.proto`：设备接入网关运行状态和转发统计 RPC。
 - `proto/device.proto`：设备管理 RPC。
 - `proto/telemetry.proto`：设备状态 RPC。
 - `proto/event.proto`：事件告警 RPC。
@@ -741,10 +819,11 @@ proto 文件保存于 `proto/`：
 - `proto/diagnosis.proto`：故障记录和诊断报告 RPC。
 - `proto/knowledge.proto`：知识库检索 RPC。
 
-### 7.2 RPC 服务边界
+### 8.2 RPC 服务边界
 
 | proto | 服务 | 说明 |
 | --- | --- | --- |
+| device_gateway.proto | DeviceGatewayService | 查询网关运行状态、连接设备和转发统计 |
 | device.proto | DeviceService | 管理设备基础信息，校验设备接入 |
 | telemetry.proto | TelemetryService | 写入和查询设备实时状态 |
 | event.proto | EventService | 查询和更新告警事件 |
@@ -752,7 +831,7 @@ proto 文件保存于 `proto/`：
 | diagnosis.proto | DiagnosisService | 管理故障记录，发起 AI 诊断，查询诊断报告 |
 | knowledge.proto | KnowledgeService | 管理和检索知识文档 |
 
-### 7.3 brpc 约定
+### 8.3 brpc 约定
 
 - proto 使用 `syntax = "proto3"`。
 - C++ 服务端基于 brpc 生成的 protobuf service 实现。
@@ -760,10 +839,9 @@ proto 文件保存于 `proto/`：
 - 查询接口统一使用 `PageRequest` 和 `PageResponse`。
 - 时间字段统一使用 Unix 毫秒时间戳 `int64`。
 
-## 8. 后续实现建议
+## 9. 后续实现建议
 
 - Phase 4 设备模拟器实现前，应优先确认 MQTT topic 和 telemetry payload。
 - Phase 5 device-gateway 实现前，应确认 MQTT Client 封装位置，并复用脚手架日志、配置、注册发现能力。
 - Phase 6 事件告警实现前，应补充告警规则配置表或配置文件方案。
 - Phase 7 Agent 诊断实现前，应补充知识库分段、向量化和模型调用细节。
-
