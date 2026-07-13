@@ -1,2 +1,4 @@
 build/
-
+qt_client/build*/
+qt_client/.qtcreator/
+*.user

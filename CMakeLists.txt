@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(DeviceOps VERSION 0.1.0 LANGUAGES CXX)
 
+option(DEVICEOPS_BUILD_QT_CLIENT "Build the DeviceOps Qt desktop client" OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -137,3 +139,7 @@ add_subdirectory(services/knowledge_service)
 add_subdirectory(services/diagnosis_service)
 add_subdirectory(simulator)
 add_subdirectory(tools/rabbitmq_queue_probe)
+
+if(DEVICEOPS_BUILD_QT_CLIENT)
+    add_subdirectory(qt_client)
+endif()

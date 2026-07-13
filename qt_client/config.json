@@ -1,0 +1,10 @@
+{
+  "gatewayBaseUrl": "http://127.0.0.1:9101",
+  "deviceBaseUrl": "http://127.0.0.1:9201",
+  "telemetryBaseUrl": "http://127.0.0.1:9301",
+  "eventBaseUrl": "http://127.0.0.1:9401",
+  "logBaseUrl": "http://127.0.0.1:9501",
+  "knowledgeBaseUrl": "http://127.0.0.1:9600",
+  "diagnosisBaseUrl": "http://127.0.0.1:9700",
+  "requestTimeoutMs": 10000
+}

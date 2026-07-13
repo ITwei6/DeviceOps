@@ -236,7 +236,7 @@ curl.exe -X POST http://127.0.0.1:9101/deviceops.gateway.DeviceGatewayService/Ge
 推荐目录：
 
 ```text
-qt-client/
+qt_client/
 ├── CMakeLists.txt
 ├── src/
 │   ├── main.cpp

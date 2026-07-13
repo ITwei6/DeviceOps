@@ -23,6 +23,17 @@ cmake --build build
 构建时会统一生成并编译根目录 `proto/*.proto` 的 C++ 契约代码，生成目录位于 `build/generated/proto/`。
 MySQL 持久化使用 ODB，源码只维护 `common/include/deviceops/db/*_entity.h` 实体定义，`*-odb.hxx`、`*-odb.cxx` 和 schema 会在构建时生成到 `build/generated/odb/`。
 
+## Qt 客户端
+
+Qt 桌面客户端位于 `qt_client/`，推荐使用 Qt Creator 打开 `qt_client/CMakeLists.txt` 独立构建和运行。客户端通过后端 brpc HTTP JSON 接口访问服务，不直接连接 MySQL、Redis、Elasticsearch、RabbitMQ 或 MQTT。
+
+如需从顶层 CMake 纳入客户端构建，可显式开启：
+
+```bash
+cmake -S . -B build -DDEVICEOPS_BUILD_QT_CLIENT=ON
+cmake --build build
+```
+
 ## 后端一键联调
 
 以下脚本需要在 `dev-env-service` 开发容器内执行，并依赖当前环境已有的 `mysql-service`、`redis-service`、`elasticsearch-service` 和 `rabbitmq-service` 等基础容器：
