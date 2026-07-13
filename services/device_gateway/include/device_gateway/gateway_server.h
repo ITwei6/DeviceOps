@@ -1,7 +1,5 @@
 #pragma once
 
-#include <jsoncpp/json/json.h>
-
 #include <atomic>
 #include <memory>
 #include <map>
@@ -11,6 +9,7 @@
 
 #include "device_gateway.pb.h"
 #include "device_gateway/gateway_config.h"
+#include "device_gateway/parsed_mqtt_message.h"
 #include "mqtt_client.h"
 
 namespace brpc {
@@ -18,6 +17,8 @@ class Server;
 }
 
 namespace deviceops::gateway {
+
+class DownstreamForwarder;
 
 struct ForwardingCounter {
     uint64_t received = 0;
@@ -49,14 +50,6 @@ public:
     const std::string& gatewayId() const;
 
 private:
-    struct ParsedMqttMessage {
-        std::string message_type;
-        std::string device_id;
-        std::string message_id;
-        int64_t timestamp = 0;
-        Json::Value payload;
-    };
-
     void handleMqttMessage(const tewmqtt::MqttMessage& message);
     bool parsePayload(const std::string& topic, const std::string& payload, ParsedMqttMessage* parsed);
     void markReceived(const std::string& message_type);
@@ -68,6 +61,7 @@ private:
 private:
     GatewayConfig _config;
     tewmqtt::MqttClient _mqtt_client;
+    std::unique_ptr<DownstreamForwarder> _forwarder;
     std::shared_ptr<brpc::Server> _rpc_server;
     std::atomic_bool _running{false};
     std::atomic<int64_t> _started_at{0};

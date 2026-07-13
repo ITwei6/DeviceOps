@@ -26,6 +26,15 @@ int getenvIntOrDefault(const char* name, int fallback) {
     }
 }
 
+bool getenvBoolOrDefault(const char* name, bool fallback) {
+    const char* value = std::getenv(name);
+    if (value == nullptr || *value == '\0') {
+        return fallback;
+    }
+    const std::string normalized(value);
+    return normalized == "1" || normalized == "true" || normalized == "TRUE" || normalized == "yes" || normalized == "YES";
+}
+
 } // namespace
 
 GatewayConfig loadGatewayConfigFromEnv() {
@@ -40,6 +49,12 @@ GatewayConfig loadGatewayConfigFromEnv() {
     config.mqtt.keep_alive_seconds = getenvIntOrDefault("DEVICEOPS_MQTT_KEEPALIVE_SECONDS", 60);
     config.mqtt.connect_timeout_seconds = getenvIntOrDefault("DEVICEOPS_MQTT_CONNECT_TIMEOUT_SECONDS", 5);
     config.mqtt.retry_interval_seconds = getenvIntOrDefault("DEVICEOPS_MQTT_RETRY_INTERVAL_SECONDS", 2);
+
+    config.downstream.enabled = getenvBoolOrDefault("DEVICEOPS_DOWNSTREAM_RPC_ENABLED", config.downstream.enabled);
+    config.downstream.telemetry_addr = getenvOrDefault("DEVICEOPS_TELEMETRY_RPC_ADDR", config.downstream.telemetry_addr);
+    config.downstream.event_addr = getenvOrDefault("DEVICEOPS_EVENT_RPC_ADDR", config.downstream.event_addr);
+    config.downstream.log_addr = getenvOrDefault("DEVICEOPS_LOG_RPC_ADDR", config.downstream.log_addr);
+    config.downstream.timeout_ms = getenvIntOrDefault("DEVICEOPS_DOWNSTREAM_RPC_TIMEOUT_MS", config.downstream.timeout_ms);
 
     config.subscribe_topics = {
         "device/+/register",

@@ -1,4 +1,5 @@
 add_executable(device_gateway
+    src/downstream_forwarder.cc
     src/gateway_config.cc
     src/gateway_rpc_service.cc
     src/gateway_server.cc

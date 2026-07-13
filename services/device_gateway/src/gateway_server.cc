@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "device_gateway/downstream_forwarder.h"
 #include "device_gateway/gateway_rpc_service.h"
 #include "log.h"
 #include "rpc.h"
@@ -47,7 +48,8 @@ std::string messageTypeFromTopic(const std::string& topic) {
 
 GatewayServer::GatewayServer(GatewayConfig config)
     : _config(std::move(config))
-    , _mqtt_client(_config.mqtt) {
+    , _mqtt_client(_config.mqtt)
+    , _forwarder(std::make_unique<DownstreamForwarder>(_config.downstream)) {
 }
 
 GatewayServer::~GatewayServer() {
@@ -185,8 +187,19 @@ void GatewayServer::handleMqttMessage(const tewmqtt::MqttMessage& message) {
     }
 
     updateDeviceView(parsed);
+    std::string error;
+    if (!_forwarder->forward(parsed, &error)) {
+        markFailed(parsed.message_type);
+        ERR("device-gateway downstream forwarding failed: type={}, device_id={}, topic={}, error={}",
+            parsed.message_type,
+            parsed.device_id,
+            message.topic,
+            error);
+        return;
+    }
+
     markForwarded(parsed.message_type);
-    INF("device-gateway standardized MQTT message: type={}, device_id={}, topic={}, bytes={}",
+    INF("device-gateway forwarded MQTT message: type={}, device_id={}, topic={}, bytes={}",
         parsed.message_type,
         parsed.device_id,
         message.topic,
