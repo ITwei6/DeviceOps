@@ -75,6 +75,16 @@ export DEVICEOPS_MYSQL_PASSWORD=123456
 
 `event_service` 实现告警事件创建、查询、列表和状态流转，事件数据通过 ODB 写入 MySQL。
 
+日志检索服务：
+
+```bash
+export DEVICEOPS_LOG_RPC_PORT=9501
+export DEVICEOPS_ES_URL=http://elastic:123456@elasticsearch-service:9200/
+./build/services/log_service/log_service
+```
+
+`log_service` 实现日志写入、条件查询和故障上下文查询，日志索引按月写入 Elasticsearch，索引名形如 `deviceops-logs-YYYY.MM`。
+
 机器人设备模拟器：
 
 ```bash

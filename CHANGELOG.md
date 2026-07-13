@@ -18,3 +18,4 @@
 - 将 `device_service` 仓储层切换为 ODB/MySQL 持久化，支持设备创建、更新、查询、列表和接入校验 RPC。
 - 新增 `telemetry_service`，支持状态上传、实时状态查询、状态列表、历史查询和 Redis 最新状态写入。
 - 新增 `event_service`，支持告警事件创建、查询、列表、状态流转和 ODB/MySQL 持久化。
+- 新增 `log_service`，支持日志写入 Elasticsearch、条件查询和设备故障上下文查询。
