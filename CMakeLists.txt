@@ -117,6 +117,17 @@ target_link_libraries(deviceops_db
     PUBLIC
         tew_scaffold)
 
+add_library(deviceops_mq STATIC
+    common/src/mq/rabbitmq_event_publisher.cc)
+
+target_include_directories(deviceops_mq
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/common/include)
+
+target_link_libraries(deviceops_mq
+    PUBLIC
+        tew_scaffold)
+
 add_subdirectory(services/device_gateway)
 add_subdirectory(services/device_service)
 add_subdirectory(services/telemetry_service)
@@ -125,3 +136,4 @@ add_subdirectory(services/log_service)
 add_subdirectory(services/knowledge_service)
 add_subdirectory(services/diagnosis_service)
 add_subdirectory(simulator)
+add_subdirectory(tools/rabbitmq_queue_probe)

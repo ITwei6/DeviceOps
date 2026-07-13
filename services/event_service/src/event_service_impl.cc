@@ -1,6 +1,9 @@
 #include "event_service/event_service_impl.h"
 
 #include <brpc/server.h>
+#include <jsoncpp/json/json.h>
+
+#include "log.h"
 
 namespace deviceops::event_service {
 namespace {
@@ -23,8 +26,9 @@ int pageSizeOrDefault(const deviceops::common::PageRequest& page) {
 
 } // namespace
 
-EventServiceImpl::EventServiceImpl(EventRepository* repository)
-    : _repository(repository) {
+EventServiceImpl::EventServiceImpl(EventRepository* repository, deviceops::mq::RabbitMqEventPublisher* event_publisher)
+    : _repository(repository),
+      _event_publisher(event_publisher) {
 }
 
 void EventServiceImpl::CreateEvent(::google::protobuf::RpcController* controller,
@@ -43,6 +47,26 @@ void EventServiceImpl::CreateEvent(::google::protobuf::RpcController* controller
 
     setResponse(response->mutable_response(), 0, "ok");
     *response->mutable_event() = event;
+
+    if (_event_publisher != nullptr && _event_publisher->enabled()) {
+        Json::Value payload;
+        payload["event_id"] = event.event_id();
+        payload["device_id"] = event.device_id();
+        payload["event_type"] = event.event_type();
+        payload["severity"] = deviceops::common::EventSeverity_Name(event.severity());
+        payload["status"] = deviceops::common::EventStatus_Name(event.status());
+        payload["error_code"] = event.error_code();
+        payload["title"] = event.title();
+        payload["description"] = event.description();
+        payload["rule_name"] = event.rule_name();
+        payload["occurred_at"] = Json::Int64(event.occurred_at());
+        payload["created_at"] = Json::Int64(event.created_at());
+
+        std::string error;
+        if (!_event_publisher->publishAlarmCreated(payload, request->trace_id(), &error)) {
+            WRN("rabbitmq event.alarm.created publish failed: event_id={}, error={}", event.event_id(), error);
+        }
+    }
 }
 
 void EventServiceImpl::GetEvent(::google::protobuf::RpcController* controller,

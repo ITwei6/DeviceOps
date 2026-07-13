@@ -9,5 +9,6 @@ target_include_directories(telemetry_service
 
 target_link_libraries(telemetry_service
     PRIVATE
+        deviceops_mq
         tew_scaffold
         deviceops_proto)

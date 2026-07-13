@@ -1,7 +1,9 @@
 #include "log_service/log_service_impl.h"
 
 #include <brpc/server.h>
+#include <jsoncpp/json/json.h>
 
+#include "log.h"
 #include "log_service/log_repository.h"
 
 namespace deviceops::log_service {
@@ -25,8 +27,9 @@ int pageSizeOrDefault(const deviceops::common::PageRequest& page) {
 
 } // namespace
 
-LogServiceImpl::LogServiceImpl(LogRepository* repository)
-    : _repository(repository) {
+LogServiceImpl::LogServiceImpl(LogRepository* repository, deviceops::mq::RabbitMqEventPublisher* event_publisher)
+    : _repository(repository),
+      _event_publisher(event_publisher) {
 }
 
 void LogServiceImpl::WriteLog(::google::protobuf::RpcController* controller,
@@ -43,6 +46,29 @@ void LogServiceImpl::WriteLog(::google::protobuf::RpcController* controller,
     }
 
     setResponse(response->mutable_response(), 0, "ok");
+
+    if (_event_publisher != nullptr && _event_publisher->enabled()) {
+        Json::Value payload;
+        payload["log_id"] = request->log().log_id();
+        payload["trace_id"] = request->log().trace_id();
+        payload["device_id"] = request->log().device_id();
+        payload["service_name"] = request->log().service_name();
+        payload["source_type"] = request->log().source_type();
+        payload["level"] = request->log().level();
+        payload["message"] = request->log().message();
+        payload["error_code"] = request->log().error_code();
+        payload["event_id"] = request->log().event_id();
+        payload["timestamp"] = Json::Int64(request->log().timestamp());
+        payload["tags"] = Json::arrayValue;
+        for (const auto& tag : request->log().tags()) {
+            payload["tags"].append(tag);
+        }
+
+        std::string error;
+        if (!_event_publisher->publishLogReceived(payload, request->log().trace_id(), &error)) {
+            WRN("rabbitmq log.device.received publish failed: log_id={}, error={}", request->log().log_id(), error);
+        }
+    }
 }
 
 void LogServiceImpl::QueryLogs(::google::protobuf::RpcController* controller,

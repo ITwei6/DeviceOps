@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "deviceops/db/odb_database.h"
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "event_service/event_repository.h"
 #include "event_service/event_service_impl.h"
 #include "log.h"
@@ -42,9 +43,12 @@ int main() {
     const auto db_config = deviceops::db::loadOdbConfigFromEnv();
     deviceops::db::ensureOdbSchema(db_config);
     deviceops::event_service::EventRepository repository(deviceops::db::createOdbDatabase(db_config));
+    deviceops::mq::RabbitMqEventPublisher event_publisher(
+        deviceops::mq::loadRabbitMqConfigFromEnv(),
+        "event-service");
     auto server = tewrpc::RpcServerFactory::create(
         port,
-        new deviceops::event_service::EventServiceImpl(&repository));
+        new deviceops::event_service::EventServiceImpl(&repository, &event_publisher));
 
     INF("event-service started: rpc_port={}", port);
     while (!g_stop.load()) {

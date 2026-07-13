@@ -1,6 +1,9 @@
 #include "telemetry_service/telemetry_service_impl.h"
 
 #include <brpc/server.h>
+#include <jsoncpp/json/json.h>
+
+#include "log.h"
 
 namespace deviceops::telemetry_service {
 namespace {
@@ -24,8 +27,9 @@ int pageSizeOrDefault(const deviceops::common::PageRequest& page) {
 
 } // namespace
 
-TelemetryServiceImpl::TelemetryServiceImpl(TelemetryRepository* repository)
-    : _repository(repository) {
+TelemetryServiceImpl::TelemetryServiceImpl(TelemetryRepository* repository, deviceops::mq::RabbitMqEventPublisher* event_publisher)
+    : _repository(repository),
+      _event_publisher(event_publisher) {
 }
 
 void TelemetryServiceImpl::UploadTelemetry(::google::protobuf::RpcController* controller,
@@ -41,6 +45,34 @@ void TelemetryServiceImpl::UploadTelemetry(::google::protobuf::RpcController* co
     }
 
     _repository->upload(request->telemetry());
+    if (_event_publisher != nullptr && _event_publisher->enabled()) {
+        Json::Value payload;
+        payload["device_id"] = request->telemetry().device_id();
+        payload["online"] = request->telemetry().online();
+        payload["battery"] = request->telemetry().battery();
+        payload["temperature"] = request->telemetry().temperature();
+        payload["speed"] = request->telemetry().speed();
+        payload["run_mode"] = request->telemetry().run_mode();
+        payload["error_code"] = request->telemetry().error_code();
+        payload["reported_at"] = Json::Int64(request->telemetry().reported_at());
+        payload["metrics"] = Json::objectValue;
+        for (const auto& metric : request->telemetry().metrics()) {
+            payload["metrics"][metric.first] = metric.second;
+        }
+
+        std::string error;
+        if (!_event_publisher->publishTelemetryStatus(payload, request->trace_id(), &error)) {
+            WRN("rabbitmq telemetry.status.updated publish failed: device_id={}, error={}",
+                request->telemetry().device_id(),
+                error);
+        }
+        if (!request->telemetry().online()
+            && !_event_publisher->publishTelemetryOffline(payload, request->trace_id(), &error)) {
+            WRN("rabbitmq telemetry.device.offline publish failed: device_id={}, error={}",
+                request->telemetry().device_id(),
+                error);
+        }
+    }
     setResponse(response->mutable_response(), 0, "ok", request->trace_id());
 }
 

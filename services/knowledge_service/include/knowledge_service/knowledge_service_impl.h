@@ -1,5 +1,6 @@
 #pragma once
 
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "knowledge.pb.h"
 #include "knowledge_service/knowledge_repository.h"
 #include "knowledge_service/rag_client.h"
@@ -8,7 +9,9 @@ namespace deviceops::knowledge_service {
 
 class KnowledgeServiceImpl final : public deviceops::knowledge::KnowledgeService {
 public:
-    KnowledgeServiceImpl(KnowledgeRepository* repository, RagClient* rag_client);
+    KnowledgeServiceImpl(KnowledgeRepository* repository,
+        RagClient* rag_client,
+        deviceops::mq::RabbitMqEventPublisher* event_publisher);
 
     void CreateKnowledgeDocument(::google::protobuf::RpcController* controller,
         const deviceops::knowledge::CreateKnowledgeDocumentRequest* request,
@@ -38,6 +41,7 @@ public:
 private:
     KnowledgeRepository* _repository;
     RagClient* _rag_client;
+    deviceops::mq::RabbitMqEventPublisher* _event_publisher;
 };
 
 } // namespace deviceops::knowledge_service

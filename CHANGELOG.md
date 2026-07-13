@@ -22,6 +22,7 @@
 - 新增 `knowledge_service`，支持知识文档管理、关键词检索和 RAG 索引请求。
 - 新增 Python `rag_service` MVP，提供 HTTP JSON 的知识索引、检索和诊断生成能力。
 - 新增 `diagnosis_service`，支持故障记录、RAG 诊断草案、诊断报告查询和确认/驳回。
+- 新增 RabbitMQ 业务事件发布链路，基于 `cpp-microservice-kit` 的 `tewmq` 发布 telemetry、event、log、knowledge 和 diagnosis 事件。
 - 完善 `device_gateway` 下游转发链路，将遥测、告警和日志分别通过 brpc 转发到 telemetry、event 和 log 服务，心跳保留用于网关本地在线视图。
 - 完善 `device_gateway` 注册链路，将设备注册消息转发到 `device_service` 并支持已注册设备的幂等接入校验。
 - 新增后端一键启动、停止和端到端验收脚本，覆盖设备、遥测、事件、日志、知识库、RAG 和诊断服务联调。

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "event.pb.h"
 #include "event_service/event_repository.h"
 
@@ -7,7 +8,7 @@ namespace deviceops::event_service {
 
 class EventServiceImpl final : public deviceops::event::EventService {
 public:
-    explicit EventServiceImpl(EventRepository* repository);
+    EventServiceImpl(EventRepository* repository, deviceops::mq::RabbitMqEventPublisher* event_publisher);
 
     void CreateEvent(::google::protobuf::RpcController* controller,
         const deviceops::event::CreateEventRequest* request,
@@ -31,6 +32,7 @@ public:
 
 private:
     EventRepository* _repository;
+    deviceops::mq::RabbitMqEventPublisher* _event_publisher;
 };
 
 } // namespace deviceops::event_service

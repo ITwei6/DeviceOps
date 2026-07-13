@@ -72,6 +72,22 @@ require_nonempty() {
   echo "$label=$value"
 }
 
+rabbitmq_probe() {
+  local label="$1"
+  local exchange="$2"
+  local queue="$3"
+  local routing_key="$4"
+  local expected="$5"
+  build/tools/rabbitmq_queue_probe/rabbitmq_queue_probe \
+    amqp://admin:123456@rabbitmq-service:5672/ \
+    "$exchange" \
+    "$queue" \
+    "$routing_key" \
+    "$expected" \
+    15000
+  echo "$label ok"
+}
+
 echo "checking backend stack with device_id=$DEVICE_ID"
 
 timeout 8 sh -c "mosquitto_sub -h 127.0.0.1 -p 1883 -t deviceops/e2e-smoke -C 1 >/tmp/deviceops-e2e-smoke.out & sleep 1; mosquitto_pub -h 127.0.0.1 -p 1883 -t deviceops/e2e-smoke -m ok; wait" >/dev/null
@@ -151,6 +167,13 @@ require_nonempty "report_id" "$REPORT_ID"
 REPORT_BODY="$(post_json http://127.0.0.1:9700/deviceops.diagnosis.DiagnosisService/GetDiagnosisReport "{\"report_id\":\"$REPORT_ID\"}")"
 require_ok "diagnosis report" "$REPORT_BODY"
 require_nonempty "diagnosis_summary" "$(printf '%s' "$REPORT_BODY" | get_json_path report.summary)"
+
+rabbitmq_probe "rabbitmq telemetry status" deviceops.telemetry.exchange telemetry.status.queue telemetry.status.updated "$DEVICE_ID"
+rabbitmq_probe "rabbitmq telemetry offline" deviceops.telemetry.exchange telemetry.offline.queue telemetry.device.offline "$DEVICE_ID"
+rabbitmq_probe "rabbitmq alarm created" deviceops.event.exchange event.alarm.queue event.alarm.created "$DEVICE_ID"
+rabbitmq_probe "rabbitmq log received" deviceops.log.exchange log.ingest.queue log.device.received "$DEVICE_ID"
+rabbitmq_probe "rabbitmq knowledge index" deviceops.knowledge.exchange knowledge.index.queue knowledge.document.index_requested "$DEVICE_ID"
+rabbitmq_probe "rabbitmq diagnosis task" deviceops.diagnosis.exchange diagnosis.task.queue diagnosis.task.created "$DEVICE_ID"
 
 STATS_BODY="$(post_json http://127.0.0.1:9101/deviceops.gateway.DeviceGatewayService/GetForwardingStats '{"gateway_id":"device-gateway-001"}')"
 require_ok "gateway stats" "$STATS_BODY"

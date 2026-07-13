@@ -1,6 +1,9 @@
 #include "knowledge_service/knowledge_service_impl.h"
 
 #include <brpc/server.h>
+#include <jsoncpp/json/json.h>
+
+#include "log.h"
 
 namespace deviceops::knowledge_service {
 namespace {
@@ -23,9 +26,12 @@ int pageSizeOrDefault(const deviceops::common::PageRequest& page) {
 
 } // namespace
 
-KnowledgeServiceImpl::KnowledgeServiceImpl(KnowledgeRepository* repository, RagClient* rag_client)
+KnowledgeServiceImpl::KnowledgeServiceImpl(KnowledgeRepository* repository,
+    RagClient* rag_client,
+    deviceops::mq::RabbitMqEventPublisher* event_publisher)
     : _repository(repository),
-      _rag_client(rag_client) {
+      _rag_client(rag_client),
+      _event_publisher(event_publisher) {
 }
 
 void KnowledgeServiceImpl::CreateKnowledgeDocument(::google::protobuf::RpcController* controller,
@@ -127,6 +133,25 @@ void KnowledgeServiceImpl::RequestKnowledgeIndex(::google::protobuf::RpcControll
 
     setResponse(response->mutable_response(), 0, "ok");
     response->set_task_id(task_id);
+
+    if (_event_publisher != nullptr && _event_publisher->enabled()) {
+        Json::Value payload;
+        payload["document_id"] = document->document_id();
+        payload["task_id"] = task_id;
+        payload["force_rebuild"] = request->force_rebuild();
+        payload["title"] = document->title();
+        payload["category"] = document->category();
+        payload["device_type"] = document->device_type();
+        payload["error_code"] = document->error_code();
+        payload["status"] = document->status();
+
+        std::string error;
+        if (!_event_publisher->publishKnowledgeIndexRequested(payload, task_id, &error)) {
+            WRN("rabbitmq knowledge.document.index_requested publish failed: document_id={}, error={}",
+                document->document_id(),
+                error);
+        }
+    }
 }
 
 } // namespace deviceops::knowledge_service

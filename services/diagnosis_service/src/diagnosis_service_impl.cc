@@ -1,6 +1,9 @@
 #include "diagnosis_service/diagnosis_service_impl.h"
 
 #include <brpc/server.h>
+#include <jsoncpp/json/json.h>
+
+#include "log.h"
 
 namespace deviceops::diagnosis_service {
 namespace {
@@ -23,9 +26,12 @@ int pageSizeOrDefault(const deviceops::common::PageRequest& page) {
 
 } // namespace
 
-DiagnosisServiceImpl::DiagnosisServiceImpl(DiagnosisRepository* repository, DiagnosisRagClient* rag_client)
+DiagnosisServiceImpl::DiagnosisServiceImpl(DiagnosisRepository* repository,
+    DiagnosisRagClient* rag_client,
+    deviceops::mq::RabbitMqEventPublisher* event_publisher)
     : _repository(repository),
-      _rag_client(rag_client) {
+      _rag_client(rag_client),
+      _event_publisher(event_publisher) {
 }
 
 void DiagnosisServiceImpl::CreateFaultRecord(::google::protobuf::RpcController* controller,
@@ -122,6 +128,25 @@ void DiagnosisServiceImpl::StartDiagnosis(::google::protobuf::RpcController* con
 
     setResponse(response->mutable_response(), 0, "ok");
     response->set_task_id(report.report_id());
+
+    if (_event_publisher != nullptr && _event_publisher->enabled()) {
+        Json::Value payload;
+        payload["task_id"] = report.report_id();
+        payload["report_id"] = report.report_id();
+        payload["event_id"] = request->event_id();
+        payload["fault_id"] = request->fault_id();
+        payload["device_id"] = request->device_id();
+        payload["requested_by"] = Json::UInt64(request->requested_by());
+        payload["report_status"] = deviceops::common::ReportStatus_Name(report.status());
+        payload["created_at"] = Json::Int64(report.created_at());
+
+        std::string error;
+        if (!_event_publisher->publishDiagnosisTaskCreated(payload, report.report_id(), &error)) {
+            WRN("rabbitmq diagnosis.task.created publish failed: report_id={}, error={}",
+                report.report_id(),
+                error);
+        }
+    }
 }
 
 void DiagnosisServiceImpl::GetDiagnosisReport(::google::protobuf::RpcController* controller,

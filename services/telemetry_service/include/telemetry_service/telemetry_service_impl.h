@@ -1,13 +1,14 @@
 #pragma once
 
 #include "telemetry.pb.h"
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "telemetry_service/telemetry_repository.h"
 
 namespace deviceops::telemetry_service {
 
 class TelemetryServiceImpl final : public deviceops::telemetry::TelemetryService {
 public:
-    explicit TelemetryServiceImpl(TelemetryRepository* repository);
+    TelemetryServiceImpl(TelemetryRepository* repository, deviceops::mq::RabbitMqEventPublisher* event_publisher);
 
     void UploadTelemetry(::google::protobuf::RpcController* controller,
         const deviceops::telemetry::UploadTelemetryRequest* request,
@@ -31,6 +32,7 @@ public:
 
 private:
     TelemetryRepository* _repository;
+    deviceops::mq::RabbitMqEventPublisher* _event_publisher;
 };
 
 } // namespace deviceops::telemetry_service

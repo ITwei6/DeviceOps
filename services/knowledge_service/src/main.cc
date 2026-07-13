@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "deviceops/db/odb_database.h"
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "knowledge_service/knowledge_repository.h"
 #include "knowledge_service/knowledge_service_impl.h"
 #include "knowledge_service/rag_client.h"
@@ -45,9 +46,12 @@ int main() {
 
     deviceops::knowledge_service::KnowledgeRepository repository(deviceops::db::createOdbDatabase(db_config));
     deviceops::knowledge_service::RagClient rag_client(deviceops::knowledge_service::loadRagConfigFromEnv());
+    deviceops::mq::RabbitMqEventPublisher event_publisher(
+        deviceops::mq::loadRabbitMqConfigFromEnv(),
+        "knowledge-service");
     auto server = tewrpc::RpcServerFactory::create(
         port,
-        new deviceops::knowledge_service::KnowledgeServiceImpl(&repository, &rag_client));
+        new deviceops::knowledge_service::KnowledgeServiceImpl(&repository, &rag_client, &event_publisher));
 
     INF("knowledge-service started: rpc_port={}", port);
     while (!g_stop.load()) {

@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "log.h"
 #include "log_service/log_repository.h"
 #include "log_service/log_service_impl.h"
@@ -39,9 +40,12 @@ int main() {
 
     const int port = getenvIntOrDefault("DEVICEOPS_LOG_RPC_PORT", 9501);
     deviceops::log_service::LogRepository repository(deviceops::log_service::loadLogStoreConfigFromEnv());
+    deviceops::mq::RabbitMqEventPublisher event_publisher(
+        deviceops::mq::loadRabbitMqConfigFromEnv(),
+        "log-service");
     auto server = tewrpc::RpcServerFactory::create(
         port,
-        new deviceops::log_service::LogServiceImpl(&repository));
+        new deviceops::log_service::LogServiceImpl(&repository, &event_publisher));
 
     INF("log-service started: rpc_port={}", port);
     while (!g_stop.load()) {

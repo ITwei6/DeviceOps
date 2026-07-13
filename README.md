@@ -32,7 +32,14 @@ MySQL 持久化使用 ODB，源码只维护 `common/include/deviceops/db/*_entit
 ./scripts/stop_backend_stack.sh
 ```
 
-`run_backend_stack.sh` 会启动 MQTT broker、RAG HTTP 服务和所有 C++ 后端服务；`check_backend_stack.sh` 会执行端到端验收，覆盖设备注册、实时状态、告警事件、日志检索、知识库索引/检索和诊断报告生成。
+`run_backend_stack.sh` 会启动 MQTT broker、RAG HTTP 服务和所有 C++ 后端服务；`check_backend_stack.sh` 会执行端到端验收，覆盖设备注册、实时状态、告警事件、日志检索、知识库索引/检索、诊断报告生成和 RabbitMQ 业务事件队列。
+
+后端 RabbitMQ 发布链路使用 `cpp-microservice-kit` 的 `tewmq::MQClient`，服务启动脚本默认开启：
+
+```bash
+export DEVICEOPS_RABBITMQ_ENABLED=1
+export DEVICEOPS_RABBITMQ_URL=amqp://admin:123456@rabbitmq-service:5672/
+```
 
 运行前可通过环境变量配置 MQTT Broker：
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "log.pb.h"
 
 namespace deviceops::log_service {
@@ -8,7 +9,7 @@ class LogRepository;
 
 class LogServiceImpl final : public deviceops::log::LogService {
 public:
-    explicit LogServiceImpl(LogRepository* repository);
+    LogServiceImpl(LogRepository* repository, deviceops::mq::RabbitMqEventPublisher* event_publisher);
 
     void WriteLog(::google::protobuf::RpcController* controller,
         const deviceops::log::WriteLogRequest* request,
@@ -27,6 +28,7 @@ public:
 
 private:
     LogRepository* _repository;
+    deviceops::mq::RabbitMqEventPublisher* _event_publisher;
 };
 
 } // namespace deviceops::log_service

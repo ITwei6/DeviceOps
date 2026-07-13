@@ -1,5 +1,6 @@
 #pragma once
 
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "diagnosis.pb.h"
 #include "diagnosis_service/diagnosis_rag_client.h"
 #include "diagnosis_service/diagnosis_repository.h"
@@ -8,7 +9,9 @@ namespace deviceops::diagnosis_service {
 
 class DiagnosisServiceImpl final : public deviceops::diagnosis::DiagnosisService {
 public:
-    DiagnosisServiceImpl(DiagnosisRepository* repository, DiagnosisRagClient* rag_client);
+    DiagnosisServiceImpl(DiagnosisRepository* repository,
+        DiagnosisRagClient* rag_client,
+        deviceops::mq::RabbitMqEventPublisher* event_publisher);
 
     void CreateFaultRecord(::google::protobuf::RpcController* controller,
         const deviceops::diagnosis::CreateFaultRecordRequest* request,
@@ -42,6 +45,7 @@ public:
 private:
     DiagnosisRepository* _repository;
     DiagnosisRagClient* _rag_client;
+    deviceops::mq::RabbitMqEventPublisher* _event_publisher;
 };
 
 } // namespace deviceops::diagnosis_service

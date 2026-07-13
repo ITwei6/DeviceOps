@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "deviceops/db/odb_database.h"
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "diagnosis_service/diagnosis_rag_client.h"
 #include "diagnosis_service/diagnosis_repository.h"
 #include "diagnosis_service/diagnosis_service_impl.h"
@@ -45,9 +46,12 @@ int main() {
 
     deviceops::diagnosis_service::DiagnosisRepository repository(deviceops::db::createOdbDatabase(db_config));
     deviceops::diagnosis_service::DiagnosisRagClient rag_client(deviceops::diagnosis_service::loadDiagnosisRagConfigFromEnv());
+    deviceops::mq::RabbitMqEventPublisher event_publisher(
+        deviceops::mq::loadRabbitMqConfigFromEnv(),
+        "diagnosis-service");
     auto server = tewrpc::RpcServerFactory::create(
         port,
-        new deviceops::diagnosis_service::DiagnosisServiceImpl(&repository, &rag_client));
+        new deviceops::diagnosis_service::DiagnosisServiceImpl(&repository, &rag_client, &event_publisher));
 
     INF("diagnosis-service started: rpc_port={}", port);
     while (!g_stop.load()) {

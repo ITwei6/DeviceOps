@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "log.h"
+#include "deviceops/mq/rabbitmq_event_publisher.h"
 #include "rpc.h"
 #include "telemetry_service/telemetry_repository.h"
 #include "telemetry_service/telemetry_service_impl.h"
@@ -39,9 +40,12 @@ int main() {
 
     const int port = getenvIntOrDefault("DEVICEOPS_TELEMETRY_RPC_PORT", 9301);
     deviceops::telemetry_service::TelemetryRepository repository(deviceops::telemetry_service::loadRedisConfigFromEnv());
+    deviceops::mq::RabbitMqEventPublisher event_publisher(
+        deviceops::mq::loadRabbitMqConfigFromEnv(),
+        "telemetry-service");
     auto server = tewrpc::RpcServerFactory::create(
         port,
-        new deviceops::telemetry_service::TelemetryServiceImpl(&repository));
+        new deviceops::telemetry_service::TelemetryServiceImpl(&repository, &event_publisher));
 
     INF("telemetry-service started: rpc_port={}, redis_enabled={}", port, repository.redisEnabled());
     while (!g_stop.load()) {

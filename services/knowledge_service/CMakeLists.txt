@@ -11,5 +11,6 @@ target_include_directories(knowledge_service
 target_link_libraries(knowledge_service
     PRIVATE
         deviceops_db
+        deviceops_mq
         tew_scaffold
         deviceops_proto)

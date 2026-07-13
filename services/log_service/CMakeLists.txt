@@ -9,5 +9,6 @@ target_include_directories(log_service
 
 target_link_libraries(log_service
     PRIVATE
+        deviceops_mq
         tew_scaffold
         deviceops_proto)
