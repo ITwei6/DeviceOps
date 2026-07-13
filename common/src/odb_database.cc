@@ -59,6 +59,26 @@ std::shared_ptr<odb::database> connectWithDatabase(const OdbConfig& config, cons
     return tewodb::DBFactory::mysql(settings);
 }
 
+void ensureSupplementalTables(const std::shared_ptr<odb::database>& db) {
+    odb::transaction tx(db->begin());
+    db->execute(
+        "CREATE TABLE IF NOT EXISTS `knowledge_documents` ("
+        "`id` BIGINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,"
+        "`document_id` VARCHAR(128) NOT NULL,"
+        "`title` TEXT NOT NULL,"
+        "`category` VARCHAR(128) NOT NULL,"
+        "`device_type` VARCHAR(128) NULL,"
+        "`error_code` VARCHAR(128) NULL,"
+        "`content` LONGTEXT NOT NULL,"
+        "`status` VARCHAR(32) NOT NULL,"
+        "`created_by` BIGINT UNSIGNED NOT NULL,"
+        "`created_at` BIGINT NOT NULL,"
+        "`updated_at` BIGINT NOT NULL,"
+        "UNIQUE INDEX `document_id_i` (`document_id`)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    tx.commit();
+}
+
 } // namespace
 
 int64_t currentUnixMillis() {
@@ -96,6 +116,7 @@ void ensureOdbSchema(const OdbConfig& config) {
         // Schema creation is best-effort on service startup. Existing tables are
         // expected after the first boot because generated ODB DDL is not idempotent.
     }
+    ensureSupplementalTables(db);
 }
 
 } // namespace deviceops::db

@@ -19,3 +19,5 @@
 - 新增 `telemetry_service`，支持状态上传、实时状态查询、状态列表、历史查询和 Redis 最新状态写入。
 - 新增 `event_service`，支持告警事件创建、查询、列表、状态流转和 ODB/MySQL 持久化。
 - 新增 `log_service`，支持日志写入 Elasticsearch、条件查询和设备故障上下文查询。
+- 新增 `knowledge_service`，支持知识文档管理、关键词检索和 RAG 索引请求。
+- 新增 Python `rag_service` MVP，提供 HTTP JSON 的知识索引、检索和诊断生成能力。

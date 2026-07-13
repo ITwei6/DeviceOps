@@ -85,6 +85,26 @@ export DEVICEOPS_ES_URL=http://elastic:123456@elasticsearch-service:9200/
 
 `log_service` 实现日志写入、条件查询和故障上下文查询，日志索引按月写入 Elasticsearch，索引名形如 `deviceops-logs-YYYY.MM`。
 
+知识库服务：
+
+```bash
+export DEVICEOPS_KNOWLEDGE_RPC_PORT=9600
+export DEVICEOPS_MYSQL_HOST=mysql-service
+export DEVICEOPS_MYSQL_PASSWORD=123456
+export DEVICEOPS_RAG_URL=http://127.0.0.1:9601
+./build/services/knowledge_service/knowledge_service
+```
+
+`knowledge_service` 实现知识文档创建、查询、列表、关键词检索和 RAG 索引请求，知识主数据通过 ODB 写入 MySQL。
+
+RAG 能力服务：
+
+```bash
+DEVICEOPS_RAG_PORT=9601 python3 services/rag_service/server.py
+```
+
+`rag_service` 通过 HTTP JSON 暴露 `/health`、`/index`、`/retrieve` 和 `/diagnose`。MVP 使用内存切片和关键词评分，后续可替换为 embedding + Milvus。
+
 机器人设备模拟器：
 
 ```bash
