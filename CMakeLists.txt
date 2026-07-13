@@ -70,7 +70,8 @@ set(DEVICEOPS_ODB_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/odb")
 set(DEVICEOPS_ODB_ENTITY_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/common/include/deviceops/db/device_entity.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/common/include/deviceops/db/event_entity.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/common/include/deviceops/db/knowledge_entity.h")
+    "${CMAKE_CURRENT_SOURCE_DIR}/common/include/deviceops/db/knowledge_entity.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/common/include/deviceops/db/diagnosis_entity.h")
 
 set(DEVICEOPS_ODB_SRCS)
 set(DEVICEOPS_ODB_HDRS)
@@ -122,4 +123,5 @@ add_subdirectory(services/telemetry_service)
 add_subdirectory(services/event_service)
 add_subdirectory(services/log_service)
 add_subdirectory(services/knowledge_service)
+add_subdirectory(services/diagnosis_service)
 add_subdirectory(simulator)

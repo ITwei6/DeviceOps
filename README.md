@@ -105,6 +105,18 @@ DEVICEOPS_RAG_PORT=9601 python3 services/rag_service/server.py
 
 `rag_service` 通过 HTTP JSON 暴露 `/health`、`/index`、`/retrieve` 和 `/diagnose`。MVP 使用内存切片和关键词评分，后续可替换为 embedding + Milvus。
 
+诊断服务：
+
+```bash
+export DEVICEOPS_DIAGNOSIS_RPC_PORT=9700
+export DEVICEOPS_MYSQL_HOST=mysql-service
+export DEVICEOPS_MYSQL_PASSWORD=123456
+export DEVICEOPS_RAG_URL=http://127.0.0.1:9601
+./build/services/diagnosis_service/diagnosis_service
+```
+
+`diagnosis_service` 实现故障记录、AI 诊断草案生成、诊断报告查询和工程师确认/驳回，诊断报告通过 ODB 写入 MySQL，并调用 `rag_service /diagnose` 生成 MVP 诊断摘要。
+
 机器人设备模拟器：
 
 ```bash

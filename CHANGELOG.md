@@ -21,3 +21,4 @@
 - 新增 `log_service`，支持日志写入 Elasticsearch、条件查询和设备故障上下文查询。
 - 新增 `knowledge_service`，支持知识文档管理、关键词检索和 RAG 索引请求。
 - 新增 Python `rag_service` MVP，提供 HTTP JSON 的知识索引、检索和诊断生成能力。
+- 新增 `diagnosis_service`，支持故障记录、RAG 诊断草案、诊断报告查询和确认/驳回。
