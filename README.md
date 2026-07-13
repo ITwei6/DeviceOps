@@ -14,6 +14,18 @@ cmake --build build
 构建时会统一生成并编译根目录 `proto/*.proto` 的 C++ 契约代码，生成目录位于 `build/generated/proto/`。
 MySQL 持久化使用 ODB，源码只维护 `common/include/deviceops/db/*_entity.h` 实体定义，`*-odb.hxx`、`*-odb.cxx` 和 schema 会在构建时生成到 `build/generated/odb/`。
 
+## 后端一键联调
+
+以下脚本需要在 `dev-env-service` 开发容器内执行，并依赖当前环境已有的 `mysql-service`、`redis-service`、`elasticsearch-service` 和 `rabbitmq-service` 等基础容器：
+
+```bash
+./scripts/run_backend_stack.sh
+./scripts/check_backend_stack.sh
+./scripts/stop_backend_stack.sh
+```
+
+`run_backend_stack.sh` 会启动 MQTT broker、RAG HTTP 服务和所有 C++ 后端服务；`check_backend_stack.sh` 会执行端到端验收，覆盖设备注册、实时状态、告警事件、日志检索、知识库索引/检索和诊断报告生成。
+
 运行前可通过环境变量配置 MQTT Broker：
 
 ```bash
