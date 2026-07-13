@@ -9,6 +9,7 @@
 - `docs/03_design.md`：详细设计和接口设计。
 - `docs/04_development_guide.md`：后端开发指导。
 - `docs/05_qt_frontend_development_guide.md`：Qt 前端开发指导。
+- `docs/06_backend_runbook.md`：后端启动、停止和模拟测试命令。
 
 ## 后端构建
 
@@ -33,6 +34,8 @@ MySQL 持久化使用 ODB，源码只维护 `common/include/deviceops/db/*_entit
 ```
 
 `run_backend_stack.sh` 会启动 MQTT broker、RAG HTTP 服务和所有 C++ 后端服务；`check_backend_stack.sh` 会执行端到端验收，覆盖设备注册、实时状态、告警事件、日志检索、知识库索引/检索、诊断报告生成和 RabbitMQ 业务事件队列。
+
+日常启动、停止和模拟器命令见 `docs/06_backend_runbook.md`。
 
 后端 RabbitMQ 发布链路使用 `cpp-microservice-kit` 的 `tewmq::MQClient`，服务启动脚本默认开启：
 
