@@ -2,6 +2,14 @@
 
 基于 AI 的智能设备运维管理平台。
 
+## 开发文档
+
+- `docs/01_requirement.md`：需求分析。
+- `docs/02_architecture.md`：系统架构设计。
+- `docs/03_design.md`：详细设计和接口设计。
+- `docs/04_development_guide.md`：后端开发指导。
+- `docs/05_qt_frontend_development_guide.md`：Qt 前端开发指导。
+
 ## 后端构建
 
 后端工程基于 `cpp-microservice-kit` 和 CMake，当前已接入 `device_gateway` 最小服务。
