@@ -23,3 +23,4 @@
 - 新增 Python `rag_service` MVP，提供 HTTP JSON 的知识索引、检索和诊断生成能力。
 - 新增 `diagnosis_service`，支持故障记录、RAG 诊断草案、诊断报告查询和确认/驳回。
 - 完善 `device_gateway` 下游转发链路，将遥测、告警和日志分别通过 brpc 转发到 telemetry、event 和 log 服务，心跳保留用于网关本地在线视图。
+- 完善 `device_gateway` 注册链路，将设备注册消息转发到 `device_service` 并支持已注册设备的幂等接入校验。

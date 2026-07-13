@@ -23,12 +23,13 @@ export DEVICEOPS_MQTT_USERNAME=
 export DEVICEOPS_MQTT_PASSWORD=
 export DEVICEOPS_GATEWAY_RPC_PORT=9101
 export DEVICEOPS_DOWNSTREAM_RPC_ENABLED=1
+export DEVICEOPS_DEVICE_RPC_ADDR=127.0.0.1:9201
 export DEVICEOPS_TELEMETRY_RPC_ADDR=127.0.0.1:9301
 export DEVICEOPS_EVENT_RPC_ADDR=127.0.0.1:9401
 export DEVICEOPS_LOG_RPC_ADDR=127.0.0.1:9501
 ```
 
-`device_gateway` 会订阅 `device/+/register`、`device/+/telemetry`、`device/+/alarm`、`device/+/log` 和 `device/+/heartbeat`，并将遥测、告警和日志分别转发到 `telemetry_service`、`event_service` 和 `log_service`；心跳用于刷新网关本地在线视图，避免覆盖遥测指标。同时暴露 brpc 状态接口：
+`device_gateway` 会订阅 `device/+/register`、`device/+/telemetry`、`device/+/alarm`、`device/+/log` 和 `device/+/heartbeat`，并将注册、遥测、告警和日志分别转发到 `device_service`、`telemetry_service`、`event_service` 和 `log_service`；心跳用于刷新网关本地在线视图，避免覆盖遥测指标。同时暴露 brpc 状态接口：
 
 ```bash
 curl -X POST http://127.0.0.1:9101/deviceops.gateway.DeviceGatewayService/GetGatewayStatus \

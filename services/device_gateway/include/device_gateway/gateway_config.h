@@ -9,10 +9,11 @@ namespace deviceops::gateway {
 
 struct DownstreamRpcConfig {
     bool enabled = true;
+    std::string device_addr = "127.0.0.1:9201";
     std::string telemetry_addr = "127.0.0.1:9301";
     std::string event_addr = "127.0.0.1:9401";
     std::string log_addr = "127.0.0.1:9501";
-    int timeout_ms = 3000;
+    int timeout_ms = 10000;
 };
 
 struct GatewayConfig {

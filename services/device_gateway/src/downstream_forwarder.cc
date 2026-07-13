@@ -10,6 +10,7 @@
 #include <string>
 
 #include "common.pb.h"
+#include "device.pb.h"
 #include "event.pb.h"
 #include "log.h"
 #include "log.pb.h"
@@ -106,10 +107,14 @@ DownstreamForwarder::DownstreamForwarder(DownstreamRpcConfig config)
         return;
     }
 
+    _device_channel = createChannel(_config.device_addr, _config.timeout_ms);
     _telemetry_channel = createChannel(_config.telemetry_addr, _config.timeout_ms);
     _event_channel = createChannel(_config.event_addr, _config.timeout_ms);
     _log_channel = createChannel(_config.log_addr, _config.timeout_ms);
 
+    if (_device_channel) {
+        _device_stub = std::make_unique<deviceops::device::DeviceService_Stub>(_device_channel.get());
+    }
     if (_telemetry_channel) {
         _telemetry_stub = std::make_unique<deviceops::telemetry::TelemetryService_Stub>(_telemetry_channel.get());
     }
@@ -127,6 +132,9 @@ bool DownstreamForwarder::forward(const ParsedMqttMessage& message, std::string*
     if (!_config.enabled) {
         return true;
     }
+    if (message.message_type == "register") {
+        return forwardRegister(message, error);
+    }
     if (message.message_type == "telemetry") {
         return forwardTelemetry(message, error);
     }
@@ -136,7 +144,7 @@ bool DownstreamForwarder::forward(const ParsedMqttMessage& message, std::string*
     if (message.message_type == "log") {
         return forwardLog(message, error);
     }
-    if (message.message_type == "register" || message.message_type == "heartbeat") {
+    if (message.message_type == "heartbeat") {
         return true;
     }
 
@@ -144,6 +152,67 @@ bool DownstreamForwarder::forward(const ParsedMqttMessage& message, std::string*
         *error = "unsupported message type: " + message.message_type;
     }
     return false;
+}
+
+bool DownstreamForwarder::forwardRegister(const ParsedMqttMessage& message, std::string* error) {
+    if (!_device_stub) {
+        if (error != nullptr) {
+            *error = "device downstream channel is not ready";
+        }
+        return false;
+    }
+
+    deviceops::device::CreateDeviceRequest create_request;
+    create_request.set_device_id(message.device_id);
+    create_request.set_device_name(getString(message.payload, "device_name", message.device_id));
+    create_request.set_device_type(getString(message.payload, "device_type", "device"));
+    create_request.set_model(getString(message.payload, "model"));
+    create_request.set_manufacturer(getString(message.payload, "manufacturer"));
+    create_request.set_location(getString(message.payload, "location"));
+    create_request.set_access_token(getString(message.payload, "access_token"));
+    create_request.set_protocol("mqtt");
+    create_request.set_description(getString(message.payload, "description"));
+
+    brpc::Controller create_controller;
+    deviceops::device::CreateDeviceResponse create_response;
+    _device_stub->CreateDevice(&create_controller, &create_request, &create_response, nullptr);
+    if (create_controller.Failed()) {
+        if (error != nullptr) {
+            *error = create_controller.ErrorText();
+        }
+        return false;
+    }
+    if (create_response.response().code() == 0) {
+        return true;
+    }
+    if (create_response.response().code() != 409) {
+        return isOkResponse(create_response.response(), error);
+    }
+
+    deviceops::device::VerifyDeviceAccessRequest verify_request;
+    verify_request.set_device_id(message.device_id);
+    verify_request.set_access_token(getString(message.payload, "access_token"));
+    verify_request.set_protocol("mqtt");
+
+    brpc::Controller verify_controller;
+    deviceops::device::VerifyDeviceAccessResponse verify_response;
+    _device_stub->VerifyDeviceAccess(&verify_controller, &verify_request, &verify_response, nullptr);
+    if (verify_controller.Failed()) {
+        if (error != nullptr) {
+            *error = verify_controller.ErrorText();
+        }
+        return false;
+    }
+    if (!isOkResponse(verify_response.response(), error)) {
+        return false;
+    }
+    if (!verify_response.allowed()) {
+        if (error != nullptr) {
+            *error = "device access denied";
+        }
+        return false;
+    }
+    return true;
 }
 
 bool DownstreamForwarder::forwardTelemetry(const ParsedMqttMessage& message, std::string* error) {

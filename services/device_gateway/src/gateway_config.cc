@@ -51,6 +51,7 @@ GatewayConfig loadGatewayConfigFromEnv() {
     config.mqtt.retry_interval_seconds = getenvIntOrDefault("DEVICEOPS_MQTT_RETRY_INTERVAL_SECONDS", 2);
 
     config.downstream.enabled = getenvBoolOrDefault("DEVICEOPS_DOWNSTREAM_RPC_ENABLED", config.downstream.enabled);
+    config.downstream.device_addr = getenvOrDefault("DEVICEOPS_DEVICE_RPC_ADDR", config.downstream.device_addr);
     config.downstream.telemetry_addr = getenvOrDefault("DEVICEOPS_TELEMETRY_RPC_ADDR", config.downstream.telemetry_addr);
     config.downstream.event_addr = getenvOrDefault("DEVICEOPS_EVENT_RPC_ADDR", config.downstream.event_addr);
     config.downstream.log_addr = getenvOrDefault("DEVICEOPS_LOG_RPC_ADDR", config.downstream.log_addr);

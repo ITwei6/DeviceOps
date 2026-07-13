@@ -14,6 +14,10 @@ namespace deviceops::event {
 class EventService_Stub;
 }
 
+namespace deviceops::device {
+class DeviceService_Stub;
+}
+
 namespace deviceops::log {
 class LogService_Stub;
 }
@@ -32,15 +36,18 @@ public:
     bool forward(const ParsedMqttMessage& message, std::string* error);
 
 private:
+    bool forwardRegister(const ParsedMqttMessage& message, std::string* error);
     bool forwardTelemetry(const ParsedMqttMessage& message, std::string* error);
     bool forwardAlarm(const ParsedMqttMessage& message, std::string* error);
     bool forwardLog(const ParsedMqttMessage& message, std::string* error);
 
 private:
     DownstreamRpcConfig _config;
+    std::unique_ptr<brpc::Channel> _device_channel;
     std::unique_ptr<brpc::Channel> _telemetry_channel;
     std::unique_ptr<brpc::Channel> _event_channel;
     std::unique_ptr<brpc::Channel> _log_channel;
+    std::unique_ptr<deviceops::device::DeviceService_Stub> _device_stub;
     std::unique_ptr<deviceops::telemetry::TelemetryService_Stub> _telemetry_stub;
     std::unique_ptr<deviceops::event::EventService_Stub> _event_stub;
     std::unique_ptr<deviceops::log::LogService_Stub> _log_stub;
