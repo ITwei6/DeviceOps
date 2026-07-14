@@ -18,6 +18,7 @@ struct RedisConfig {
     std::string user = "default";
     std::string password;
     int db = 0;
+    int64_t offline_timeout_ms = 90000;
 };
 
 struct ListTelemetryFilter {
@@ -50,6 +51,8 @@ private:
     struct RedisHolder;
 
     void writeRedis(const deviceops::telemetry::DeviceTelemetry& telemetry);
+    deviceops::telemetry::DeviceTelemetry withComputedOnlineStatus(
+        const deviceops::telemetry::DeviceTelemetry& telemetry) const;
     static std::string statusKey(const std::string& device_id);
     static std::string onlineKey(const std::string& device_id);
     static std::string toJson(const deviceops::telemetry::DeviceTelemetry& telemetry);

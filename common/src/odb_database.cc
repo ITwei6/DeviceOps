@@ -156,11 +156,13 @@ void ensureOdbSchema(const OdbConfig& config) {
     auto db = createOdbDatabase(config);
     try {
         odb::transaction schema_tx(db->begin());
-        odb::schema_catalog::create_schema(*db);
+        odb::schema_catalog::create_schema(*db, "", false);
         schema_tx.commit();
     } catch (const odb::exception&) {
         // Schema creation is best-effort on service startup. Existing tables are
         // expected after the first boot because generated ODB DDL is not idempotent.
+        // Keep drop=false here. The ODB default is drop=true, which would delete
+        // persisted business data every time a service starts.
     }
     ensureSupplementalTables(db);
 }

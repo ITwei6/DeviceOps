@@ -87,6 +87,8 @@ RedisConfig loadRedisConfigFromEnv() {
     config.user = getenvOrDefault("DEVICEOPS_REDIS_USER", config.user);
     config.password = getenvOrDefault("DEVICEOPS_REDIS_PASSWORD", "");
     config.db = getenvIntOrDefault("DEVICEOPS_REDIS_DB", config.db);
+    config.offline_timeout_ms = getenvIntOrDefault("DEVICEOPS_TELEMETRY_OFFLINE_TIMEOUT_MS",
+        static_cast<int>(config.offline_timeout_ms));
     return config;
 }
 
@@ -135,7 +137,7 @@ std::optional<deviceops::telemetry::DeviceTelemetry> TelemetryRepository::getRea
     if (it == _latest.end()) {
         return std::nullopt;
     }
-    return it->second;
+    return withComputedOnlineStatus(it->second);
 }
 
 std::vector<deviceops::telemetry::DeviceTelemetry> TelemetryRepository::listRealtime(const ListTelemetryFilter& filter, int64_t* total) const {
@@ -145,7 +147,7 @@ std::vector<deviceops::telemetry::DeviceTelemetry> TelemetryRepository::listReal
 
     std::lock_guard<std::mutex> lock(_mutex);
     for (const auto& item : _latest) {
-        const auto& telemetry = item.second;
+        const auto telemetry = withComputedOnlineStatus(item.second);
         if (!filter.device_ids.empty()
             && std::find(filter.device_ids.begin(), filter.device_ids.end(), telemetry.device_id()) == filter.device_ids.end()) {
             continue;
@@ -189,6 +191,23 @@ std::vector<deviceops::telemetry::DeviceTelemetry> TelemetryRepository::queryHis
 
 bool TelemetryRepository::redisEnabled() const {
     return static_cast<bool>(_redis);
+}
+
+deviceops::telemetry::DeviceTelemetry TelemetryRepository::withComputedOnlineStatus(
+    const deviceops::telemetry::DeviceTelemetry& telemetry) const {
+    auto result = telemetry;
+    if (_redis_config.offline_timeout_ms <= 0 || result.reported_at() <= 0) {
+        return result;
+    }
+
+    const int64_t age_ms = currentUnixMillis() - result.reported_at();
+    if (age_ms > _redis_config.offline_timeout_ms) {
+        result.set_online(false);
+        if (result.run_mode().empty() || result.run_mode() == "auto") {
+            result.set_run_mode("offline");
+        }
+    }
+    return result;
 }
 
 void TelemetryRepository::writeRedis(const deviceops::telemetry::DeviceTelemetry& telemetry) {

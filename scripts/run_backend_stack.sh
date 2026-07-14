@@ -116,7 +116,7 @@ RABBITMQ_ENV=(
 )
 
 start_proc device_service env DEVICEOPS_DEVICE_RPC_PORT=9201 "${COMMON_DB_ENV[@]}" build/services/device_service/device_service
-start_proc telemetry_service env DEVICEOPS_TELEMETRY_RPC_PORT=9301 DEVICEOPS_REDIS_ENABLED=1 DEVICEOPS_REDIS_HOST=redis-service DEVICEOPS_REDIS_PORT=6379 DEVICEOPS_REDIS_PASSWORD=123456 "${RABBITMQ_ENV[@]}" build/services/telemetry_service/telemetry_service
+start_proc telemetry_service env DEVICEOPS_TELEMETRY_RPC_PORT=9301 DEVICEOPS_TELEMETRY_OFFLINE_TIMEOUT_MS=15000 DEVICEOPS_REDIS_ENABLED=1 DEVICEOPS_REDIS_HOST=redis-service DEVICEOPS_REDIS_PORT=6379 DEVICEOPS_REDIS_PASSWORD=123456 "${RABBITMQ_ENV[@]}" build/services/telemetry_service/telemetry_service
 start_proc event_service env DEVICEOPS_EVENT_RPC_PORT=9401 "${COMMON_DB_ENV[@]}" "${RABBITMQ_ENV[@]}" build/services/event_service/event_service
 start_proc log_service env DEVICEOPS_LOG_RPC_PORT=9501 DEVICEOPS_ES_URL=http://elastic:123456@elasticsearch-service:9200/ "${RABBITMQ_ENV[@]}" build/services/log_service/log_service
 start_proc knowledge_service env DEVICEOPS_KNOWLEDGE_RPC_PORT=9600 "${COMMON_DB_ENV[@]}" DEVICEOPS_RAG_URL=http://127.0.0.1:9601 "${RABBITMQ_ENV[@]}" build/services/knowledge_service/knowledge_service
